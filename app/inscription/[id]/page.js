@@ -8,10 +8,7 @@ export default function Inscription({ params: paramsPromise }) {
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState({
-    customer_name: '',
-    phone: ''
-  })
+  const [form, setForm] = useState({ customer_name: '', phone: '' })
 
   useEffect(() => {
     loadBusiness()
@@ -23,14 +20,12 @@ export default function Inscription({ params: paramsPromise }) {
       .select('*')
       .eq('id', params.id)
       .single()
-    
     setBusiness(data)
     setLoading(false)
   }
 
   const handleSubmit = async () => {
     setSubmitting(true)
-
     const { error } = await supabase
       .from('loyalty_cards')
       .insert([{
@@ -46,7 +41,6 @@ export default function Inscription({ params: paramsPromise }) {
       setSubmitting(false)
       return
     }
-
     setStep(2)
     setSubmitting(false)
   }
@@ -85,15 +79,11 @@ export default function Inscription({ params: paramsPromise }) {
               </p>
             </div>
 
-            <h1 className="text-xl font-bold text-gray-900 mb-6">
-              Rejoignez le programme ! 🎉
-            </h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-6">Rejoignez le programme ! 🎉</h1>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Votre prénom
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Votre prénom</label>
                 <input
                   type="text"
                   placeholder="Ex: Marie"
@@ -102,11 +92,8 @@ export default function Inscription({ params: paramsPromise }) {
                   onChange={e => setForm({...form, customer_name: e.target.value})}
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Votre numéro de téléphone
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Votre numéro de téléphone</label>
                 <input
                   type="tel"
                   placeholder="Ex: 514-555-1234"
@@ -135,12 +122,8 @@ export default function Inscription({ params: paramsPromise }) {
           <div className="text-center">
             <div className="text-5xl mb-4">🎉</div>
             <div className="text-amber-500 font-bold text-2xl mb-2">Stampify</div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              Bienvenue, {form.customer_name} !
-            </h1>
-            <p className="text-gray-500 mb-2">
-              Vous êtes inscrit au programme de fidélité de
-            </p>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">Bienvenue, {form.customer_name} !</h1>
+            <p className="text-gray-500 mb-2">Vous êtes inscrit au programme de fidélité de</p>
             <p className="text-xl font-bold text-amber-500 mb-6">{business.name}</p>
 
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
@@ -161,8 +144,8 @@ export default function Inscription({ params: paramsPromise }) {
               )}
               <p className="text-xs text-amber-700 mt-3">
                 {business.mode === 'tampons'
-                  ? `Complétez ${business.goal} tampons pour : ${business.reward_description}`
-                  : `Accumulez ${business.goal} points pour : ${business.reward_description}`
+                  ? `${business.goal} tampons = ${business.reward_description}`
+                  : `${business.goal} points = ${business.reward_description}`
                 }
               </p>
             </div>

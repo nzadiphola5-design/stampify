@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import QRCode from 'react-qr-code'
 
 export default function Dashboard() {
   const [business, setBusiness] = useState(null)
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState(null)
+  const [showQR, setShowQR] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -15,7 +16,6 @@ export default function Dashboard() {
   const loadData = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { window.location.href = '/login'; return }
-    setUser(user)
 
     const { data: businesses } = await supabase
       .from('businesses')
@@ -38,6 +38,11 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/login'
+  }
+
+  const getInscriptionUrl = () => {
+    if (!business) return ''
+    return `${window.location.origin}/inscription/${business.id}`
   }
 
   if (loading) {
@@ -67,6 +72,14 @@ export default function Dashboard() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #qr-print, #qr-print * { visibility: visible; }
+          #qr-print { position: fixed; top: 0; left: 0; width: 100%; }
+        }
+      `}</style>
+
       <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <div className="text-amber-500 font-bold text-xl">Stampify</div>
         <div className="text-gray-700 font-semibold">{business.name}</div>
@@ -103,6 +116,52 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-amber-800">🔗 QR Code d'inscription</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowQR(!showQR)}
+                className="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-amber-600 transition"
+              >
+                {showQR ? 'Masquer' : 'Afficher le QR'}
+              </button>
+              {showQR && (
+                <button
+                  onClick={() => window.print()}
+                  className="text-xs bg-gray-800 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-gray-900 transition"
+                >
+                  🖨️ Imprimer
+                </button>
+              )}
+            </div>
+          </div>
+
+          {showQR && (
+            <div id="qr-print" className="flex flex-col items-center bg-white rounded-xl p-6 border border-amber-200">
+              <p className="font-bold text-gray-900 text-lg mb-1">{business.name}</p>
+              <p className="text-sm text-gray-500 mb-4">Scannez pour rejoindre notre programme de fidélité !</p>
+              <QRCode
+                value={getInscriptionUrl()}
+                size={180}
+                style={{ height: "auto", maxWidth: "100%", width: "180px" }}
+              />
+              <p className="text-xs text-gray-400 mt-4 text-center">
+                {business.mode === 'tampons'
+                  ? `${business.goal} tampons = ${business.reward_description}`
+                  : `${business.goal} points = ${business.reward_description}`
+                }
+              </p>
+            </div>
+          )}
+
+          {!showQR && (
+            <p className="text-xs text-amber-700">
+              Affichez et imprimez votre QR code à mettre en caisse !
+            </p>
+          )}
+        </div>
+
         <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900">Vos clients</h2>
@@ -115,7 +174,7 @@ export default function Dashboard() {
             <div className="text-center py-8">
               <p className="text-4xl mb-3">👥</p>
               <p className="text-gray-500 text-sm">Aucun client encore.</p>
-              <p className="text-gray-400 text-xs mt-1">Partagez votre lien d'inscription !</p>
+              <p className="text-gray-400 text-xs mt-1">Partagez votre QR code pour commencer !</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -147,14 +206,6 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </div>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <p className="text-sm font-semibold text-amber-800 mb-2">🔗 Lien d'inscription client</p>
-          <p className="text-xs text-amber-700 bg-white rounded-xl px-3 py-2 border border-amber-200 font-mono break-all">
-            localhost:3000/inscription/{business.id}
-          </p>
-          <p className="text-xs text-amber-600 mt-2">Partagez ce lien à vos clients pour qu'ils s'inscrivent.</p>
         </div>
       </div>
     </main>
